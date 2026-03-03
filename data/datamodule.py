@@ -19,7 +19,7 @@ def get_dataloader(cfg):
         dataset,
         batch_size=cfg["dataset"]["batch_size"],
         shuffle=False,
-        num_workers=8,
+        num_workers=4,
         pin_memory=True
     )
 
