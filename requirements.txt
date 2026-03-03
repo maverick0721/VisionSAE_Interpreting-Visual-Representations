@@ -9,3 +9,5 @@ pyyaml
 scipy
 jupyter
 python-dotenv
+PyYAML
+pandas
