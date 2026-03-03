@@ -1,3 +1,6 @@
+from utils.env import setup_env
+setup_env()
+
 import argparse
 import yaml
 import torch
