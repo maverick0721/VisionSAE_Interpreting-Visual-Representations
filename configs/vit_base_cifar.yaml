@@ -1,0 +1,22 @@
+seed: 42
+
+dataset:
+  name: cifar10
+  image_size: 224
+  batch_size: 256
+
+model:
+  backbone: vit_base_patch16_224
+  pretrained: true
+
+sae:
+  hidden_dim: 8192
+  sparsity: topk
+  topk: 50
+
+training:
+  epochs: 10
+  lr: 1e-4
+  weight_decay: 1e-4
+  l1_lambda: 1e-3
+  device: cuda

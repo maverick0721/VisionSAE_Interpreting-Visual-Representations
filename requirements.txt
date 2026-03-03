@@ -1,0 +1,11 @@
+torch
+torchvision
+timm
+numpy
+matplotlib
+seaborn
+tqdm
+pyyaml
+scipy
+jupyter
+python-dotenv
