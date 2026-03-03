@@ -34,7 +34,7 @@ def load_model(seed):
         f"_seed_{seed}.pt"
     )
 
-    sae.load_state_dict(torch.load(path))
+    sae.load_state_dict(torch.load(path, weights_only=True))
     sae.eval()
     return sae.decoder.weight.detach()
 
