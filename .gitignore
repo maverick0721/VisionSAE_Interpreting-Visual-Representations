@@ -11,5 +11,7 @@ features/
 data/*
 !data/datamodule.py
 .DS_Store
+notebooks/*
+!notebooks/interpretability_analysis.ipynb
 
 
