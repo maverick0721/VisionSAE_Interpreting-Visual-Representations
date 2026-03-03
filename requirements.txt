@@ -11,3 +11,4 @@ jupyter
 python-dotenv
 PyYAML
 pandas
+ipykernel
