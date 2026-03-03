@@ -12,9 +12,18 @@ from training.trainer import train_sae
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", required=True)
 parser.add_argument("--layer", type=int, required=True)
+parser.add_argument("--seed", type=int, default=None)
+parser.add_argument("--width", type=int, default=None)
 args = parser.parse_args()
 
 cfg = yaml.safe_load(open(args.config))
+
+if args.seed is not None:
+    cfg["seed"] = args.seed
+
+if args.width is not None:
+    cfg["sae"]["hidden_dim"] = args.width
+
 set_seed(cfg["seed"])
 
 device = cfg["training"]["device"]
@@ -33,4 +42,7 @@ sae = SparseAutoencoder(
 sae = train_sae(sae, features, cfg)
 
 os.makedirs("checkpoints", exist_ok=True)
-torch.save(sae.state_dict(), f"checkpoints/layer_{args.layer}.pt")
+torch.save(
+    sae.state_dict(),
+    f"checkpoints/layer_{args.layer}_width_{cfg['sae']['hidden_dim']}_seed_{cfg['seed']}.pt"
+)
