@@ -212,44 +212,74 @@ Large artifacts (datasets, checkpoints, extracted features) are intentionally ex
 
 ---
 
+## Environment Setup
+
+```
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+If your machine has no CUDA GPU, set `training.device` to `cpu` in `configs/vit_base_cifar.yaml`.
+
+### Smoke Check
+
+```
+python -m scripts.smoke_check
+```
+
+---
+
 ## Running the Pipeline
 
 ### Extract Layer Features
 
 ```
-python scripts/extract_features.py --config configs/vit_base_cifar.yaml --layer 0
+python -m scripts.extract_features --config configs/vit_base_cifar.yaml --layer 0
 ```
 
 ### Train Sparse Autoencoder
 
 ```
-python scripts/train_layer.py --config configs/vit_base_cifar.yaml --layer 0
+python -m scripts.train_layer --config configs/vit_base_cifar.yaml --layer 0
 ```
 
 ### Evaluate Representation Metrics
 
 ```
-python scripts/evaluate_layer.py --config configs/vit_base_cifar.yaml --layer 0
+python -m scripts.evaluate_layer --config configs/vit_base_cifar.yaml --layer 0
 ```
 
 ### Stability Sweep
 
 ```
-python experiments/run_full_stability_sweep.py
+python -m experiments.run_full_stability_sweep
 ```
 
 ### Cross-Width Alignment
 
 ```
-python experiments/run_cross_width_sweep.py
+python -m experiments.run_cross_width_sweep
+```
+
+### Single Cross-Width Run
+
+```
+python -m experiments.run_cross_width \
+  --config configs/vit_base_cifar.yaml \
+  --layer 0 \
+  --seed 42 \
+  --width_small 4096 \
+  --width_large 8192
 ```
 
 ### Aggregate Results
 
 ```
-python experiments/aggregate_results.py
-python experiments/aggregate_stability.py
-python experiments/aggregate_cross_width.py
+python -m experiments.aggregate_results
+python -m experiments.aggregate_stability
+python -m experiments.aggregate_cross_width
 ```
 
 ### Visualization
