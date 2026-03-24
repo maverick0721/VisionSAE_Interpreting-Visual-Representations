@@ -3,57 +3,86 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Backbone](https://img.shields.io/badge/Backbone-ViT-111111)](#method)
-[![Dataset](https://img.shields.io/badge/Dataset-CIFAR--10-2E8B57)](#experiment-matrix)
-[![Status](https://img.shields.io/badge/Status-End--to--End%20Runnable-0A7E3B)](#one-minute-demo)
+[![Backbone](https://img.shields.io/badge/Backbone-ViT-111111)](#architecture)
+[![Dataset](https://img.shields.io/badge/Dataset-CIFAR--10-2E8B57)](#appendix)
+
 
 VisionSAE is a reproducible pipeline for studying how visual features emerge inside Vision Transformers (ViTs). It trains sparse autoencoders (SAEs) on intermediate transformer activations and evaluates feature quality with reconstruction, stability, cross-width alignment, and geometry metrics.
 
-## Table of Contents
+## Problem
 
-- [One-Minute Demo](#one-minute-demo)
-- [What You Get](#what-you-get)
-- [Method](#method)
-- [System Flow](#system-flow)
-- [Experiment Matrix](#experiment-matrix)
-- [Run Modes](#run-modes)
-- [Docker](#docker)
-- [Detailed Commands](#detailed-commands)
-- [Outputs](#outputs)
-- [Repository Map](#repository-map)
-- [Key Findings](#key-findings)
-- [Reproducibility](#reproducibility)
-- [Visualization](#visualization)
-- [License](#license)
+Vision Transformers are highly effective but difficult to interpret internally. Typical workflows measure prediction quality, not the structure of latent visual features across layer depth, model width, and random seed.
 
-## One-Minute Demo
+## Solution
 
-Local quick run:
+VisionSAE adds a practical interpretability layer on top of ViT activations:
+
+- Layer-wise activation extraction.
+- Sparse autoencoder training with top-k latent sparsity.
+- Reconstruction and geometry diagnostics.
+- Cross-seed stability analysis.
+- Cross-width feature alignment analysis.
+- JSON/CSV summaries for reporting and comparison.
+
+## Architecture
+
+For an activation vector $x$ from a selected ViT layer:
+
+$$
+z = \text{Encoder}(x), \quad \hat{x} = \text{Decoder}(z)
+$$
+
+Optimization target:
+
+$$
+\mathcal{L} = \lVert x - \hat{x} \rVert_2^2 + \lambda \cdot \text{SparsityPenalty}(z)
+$$
+
+System flow:
+
+```mermaid
+flowchart LR
+  A[Images CIFAR-10] --> B[ViT Backbone]
+  B --> C[Layer Activations]
+  C --> D[Sparse Autoencoder]
+  D --> E[Reconstruction Metrics]
+  D --> F[Stability Across Seeds]
+  D --> G[Cross-Width Alignment]
+  D --> H[Geometry Diagnostics]
+  E --> I[CSV Summaries]
+  F --> I
+  G --> I
+  H --> I
+```
+
+## Demo Command
+
+Local quick demo:
 
 ```bash
 bash run_project.sh
 ```
 
-Docker quick run:
+Docker quick demo:
 
 ```bash
 ./run_docker.sh cpu
 ```
 
-GPU quick run:
+GPU quick demo:
 
 ```bash
 ./run_docker.sh gpu
 ```
 
-Full run (all layers, seeds, widths):
+Full run:
 
 ```bash
 bash run_project.sh --mode full
 ./run_docker.sh cpu full
 ```
 
-## Results At A Glance
+## Results
 
 <!-- RESULTS_SNAPSHOT_START -->
 Snapshot from current CSV summaries:
@@ -78,51 +107,24 @@ Width trend highlights:
 Interpretation: in these runs, larger SAE width is associated with better (lower) reconstruction error and stronger cross-seed stability.
 <!-- RESULTS_SNAPSHOT_END -->
 
-## What You Get
+## Why This Matters
 
-- Layer-wise feature extraction from ViT blocks.
-- SAE training with top-k sparsity.
-- Cross-seed feature stability via Hungarian matching.
-- Cross-width alignment analysis.
-- Geometry diagnostics including coherence and effective rank.
-- CSV summaries ready for reporting and demos.
+- Converts ViT internals from black-box behavior into measurable structure.
+- Makes interpretability reproducible with one-command local and Docker runs.
+- Produces concise outputs suitable for technical review and hiring screens.
+- Establishes a scalable foundation for larger datasets and backbones.
 
-## Method
+## Appendix
 
-For an activation vector $x$ from a selected ViT layer:
+### Experiment Matrix
 
-$$
-z = \text{Encoder}(x), \quad \hat{x} = \text{Decoder}(z)
-$$
-
-Optimization target:
-
-$$
-\mathcal{L} = \lVert x - \hat{x} \rVert_2^2 + \lambda \cdot \text{SparsityPenalty}(z)
-$$
-
-Design choices:
-- Overcomplete hidden widths.
-- Top-k sparse latents.
-- Independent SAE per layer.
-- Multi-seed and multi-width sweeps.
-
-## System Flow
-
-```mermaid
-flowchart LR
-  A[Images CIFAR-10] --> B[ViT Backbone]
-  B --> C[Layer Activations]
-  C --> D[Sparse Autoencoder]
-  D --> E[Reconstruction Metrics]
-  D --> F[Stability Across Seeds]
-  D --> G[Cross-Width Alignment]
-  D --> H[Geometry Diagnostics]
-  E --> I[CSV Summaries]
-  F --> I
-  G --> I
-  H --> I
-```
+| Axis | Default |
+| --- | --- |
+| Dataset | CIFAR-10 |
+| Backbone | ViT Base Patch16 224 |
+| Layers | 0-11 |
+| Widths | 4096, 8192, 16384 |
+| Seeds | 42, 123, 999 |
 
 Run orchestration flow:
 
@@ -136,17 +138,7 @@ flowchart TD
   E --> F[Aggregate CSV Reports]
 ```
 
-## Experiment Matrix
-
-| Axis | Default |
-| --- | --- |
-| Dataset | CIFAR-10 |
-| Backbone | ViT Base Patch16 224 |
-| Layers | 0-11 |
-| Widths | 4096, 8192, 16384 |
-| Seeds | 42, 123, 999 |
-
-## Run Modes
+### Run Modes
 
 ### Local setup (manual)
 
@@ -180,7 +172,7 @@ python -m scripts.run_end_to_end --layers 0,1 --seeds 42,123 --widths 4096,8192
 
 Note: if CUDA is unavailable, the runner automatically uses a temporary CPU config.
 
-## Docker
+### Docker
 
 Helper script:
 
@@ -204,7 +196,7 @@ docker build -f docker/Dockerfile.cpu -t visionsae:cpu .
 docker build -f docker/Dockerfile.gpu -t visionsae:gpu .
 ```
 
-## Detailed Commands
+### Detailed Commands
 
 Extract features:
 
@@ -244,9 +236,10 @@ python -m experiments.aggregate_stability
 python -m experiments.aggregate_cross_width
 ```
 
-## Outputs
+### Outputs
 
 Generated artifacts:
+
 - `results/raw` for per-run metric JSON files.
 - `results/stability` for cross-seed alignment outputs.
 - `results/cross_width` for cross-width outputs.
@@ -254,7 +247,7 @@ Generated artifacts:
 - `stability_summary.csv`.
 - `cross_width_summary.csv`.
 
-## Repository Map
+### Repository Map
 
 ```text
 configs/       experiment configuration
@@ -268,20 +261,20 @@ scripts/       extraction, train, eval, smoke, end-to-end
 docker/        Dockerfiles and container entrypoint
 ```
 
-## Key Findings
+### Key Findings
 
 - SAEs recover structured visual feature directions from intermediate ViT states.
 - Wider SAEs typically improve cross-seed stability.
 - Earlier transformer layers often align better than deeper layers.
 - Deeper layers show stronger redundancy signatures in some settings.
 
-## Reproducibility
+### Reproducibility
 
 - Deterministic seed controls are built into workflows.
 - Results are stored as JSON and aggregated into CSV.
 - Large artifacts (checkpoints and extracted features) are excluded from source control.
 
-## Visualization
+### Visualization
 
 Notebook entrypoint:
 
@@ -289,7 +282,7 @@ Notebook entrypoint:
 notebooks/interpretability_analysis.ipynb
 ```
 
-## Cite This Work
+### Cite This Work
 
 Citation metadata is available in `CITATION.cff`.
 
@@ -304,6 +297,6 @@ BibTeX:
 }
 ```
 
-## License
+### License
 
 This repository does not yet include a formal license file. Current usage is best treated as research/demo usage until a license is added.
