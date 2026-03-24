@@ -1,0 +1,20 @@
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY docker/requirements.gpu.txt ./docker/requirements.gpu.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r docker/requirements.gpu.txt
+
+COPY . .
+RUN chmod +x docker/entrypoint.sh
+
+ENTRYPOINT ["bash", "docker/entrypoint.sh"]
+CMD ["--mode", "quick"]

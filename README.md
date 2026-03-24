@@ -245,6 +245,51 @@ bash run_project.sh --mode full
 
 `run_project.sh` bootstraps `.venv`, installs dependencies, then executes the full pipeline orchestrator (`scripts.run_end_to_end`) from extraction through aggregation.
 
+### Docker (Run Anywhere)
+
+Simplest helper script:
+
+```
+./run_docker.sh cpu
+./run_docker.sh gpu
+./run_docker.sh cpu full
+```
+
+The first argument selects the runtime (`cpu` or `gpu`). The optional second argument selects mode (`quick` or `full`). Any extra arguments are passed through to `scripts.run_end_to_end`.
+
+CPU container (single command):
+
+```
+docker compose run --rm visionsae-cpu
+```
+
+GPU container (NVIDIA runtime required):
+
+```
+docker compose --profile gpu run --rm visionsae-gpu
+```
+
+Build images explicitly:
+
+```
+docker build -f docker/Dockerfile.cpu -t visionsae:cpu .
+docker build -f docker/Dockerfile.gpu -t visionsae:gpu .
+```
+
+Run quick demo manually:
+
+```
+docker run --rm -v "$(pwd):/app" visionsae:cpu
+```
+
+Run full pipeline manually:
+
+```
+docker run --rm -v "$(pwd):/app" visionsae:cpu --mode full
+```
+
+The Docker entrypoint runs `python -m scripts.run_end_to_end`, so you can pass any runner args directly to the container command.
+
 ---
 
 ## Running the Pipeline

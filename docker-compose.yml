@@ -1,0 +1,20 @@
+services:
+  visionsae-cpu:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cpu
+    image: visionsae:cpu
+    volumes:
+      - ./:/app
+    command: ["--mode", "quick"]
+
+  visionsae-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    image: visionsae:gpu
+    volumes:
+      - ./:/app
+    command: ["--mode", "quick"]
+    gpus: all
