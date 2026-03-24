@@ -229,6 +229,22 @@ If your machine has no CUDA GPU, set `training.device` to `cpu` in `configs/vit_
 python -m scripts.smoke_check
 ```
 
+### One-Command End-to-End Run
+
+Quick demo (good for presentations):
+
+```
+bash run_project.sh
+```
+
+Full experiment run (all layers, widths, and seeds):
+
+```
+bash run_project.sh --mode full
+```
+
+`run_project.sh` bootstraps `.venv`, installs dependencies, then executes the full pipeline orchestrator (`scripts.run_end_to_end`) from extraction through aggregation.
+
 ---
 
 ## Running the Pipeline
