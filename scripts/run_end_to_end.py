@@ -185,6 +185,7 @@ def main():
         run_cmd(["python", "-m", "experiments.aggregate_results"], allow_fail=args.continue_on_error)
         run_cmd(["python", "-m", "experiments.aggregate_stability"], allow_fail=args.continue_on_error)
         run_cmd(["python", "-m", "experiments.aggregate_cross_width"], allow_fail=args.continue_on_error)
+        run_cmd(["python", "-m", "scripts.update_readme_snapshot"], allow_fail=args.continue_on_error)
 
         print("\n=== Run Complete ===")
         print("Generated summaries:")

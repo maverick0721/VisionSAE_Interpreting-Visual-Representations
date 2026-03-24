@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use VisionSAE in your research, please cite it using this metadata."
+title: "VisionSAE: Interpreting Vision Transformers with Sparse Autoencoders"
+version: 0.1.0
+date-released: 2026-03-24
+authors:
+  - family-names: "Contributors"
+    given-names: "VisionSAE"
+keywords:
+  - vision transformer
+  - sparse autoencoder
+  - mechanistic interpretability
+  - representation learning
+  - pytorch
+abstract: >-
+  VisionSAE is a reproducible pipeline for analyzing internal Vision Transformer
+  representations using sparse autoencoders, with stability, cross-width, and
+  geometry-focused diagnostics.
+license: "NOASSERTION"

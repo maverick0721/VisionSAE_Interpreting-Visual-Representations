@@ -1,384 +1,309 @@
-# VisionSAE — Sparse Autoencoders for Interpreting Vision Transformer Representations
+# VisionSAE: Interpreting Vision Transformers with Sparse Autoencoders
 
-**Python • PyTorch • Vision Transformers • Sparse Autoencoders • Mechanistic Interpretability**
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Backbone](https://img.shields.io/badge/Backbone-ViT-111111)](#method)
+[![Dataset](https://img.shields.io/badge/Dataset-CIFAR--10-2E8B57)](#experiment-matrix)
+[![Status](https://img.shields.io/badge/Status-End--to--End%20Runnable-0A7E3B)](#one-minute-demo)
 
----
+VisionSAE is a reproducible pipeline for studying how visual features emerge inside Vision Transformers (ViTs). It trains sparse autoencoders (SAEs) on intermediate transformer activations and evaluates feature quality with reconstruction, stability, cross-width alignment, and geometry metrics.
 
-## Project Summary
+## Table of Contents
 
-VisionSAE investigates the internal structure of Vision Transformer (ViT) representations using overcomplete sparse autoencoders. The project trains layer-wise sparse autoencoders on intermediate transformer activations and studies how learned feature bases evolve across network depth, model width, and random initialization.
+- [One-Minute Demo](#one-minute-demo)
+- [What You Get](#what-you-get)
+- [Method](#method)
+- [System Flow](#system-flow)
+- [Experiment Matrix](#experiment-matrix)
+- [Run Modes](#run-modes)
+- [Docker](#docker)
+- [Detailed Commands](#detailed-commands)
+- [Outputs](#outputs)
+- [Repository Map](#repository-map)
+- [Key Findings](#key-findings)
+- [Reproducibility](#reproducibility)
+- [Visualization](#visualization)
+- [License](#license)
 
-The repository implements a fully reproducible experimental pipeline including:
+## One-Minute Demo
 
-* Intermediate feature extraction from transformer blocks
-* Layer-wise sparse autoencoder training
-* Cross-seed feature alignment via Hungarian matching
-* Cross-width representation analysis
-* Geometric diagnostics of learned feature bases
-* Patch-level interpretability and activation maximization
+Local quick run:
 
-The central objective is to understand how structured visual features emerge and stabilize inside transformer-based vision models.
-
----
-
-## Motivation
-
-Sparse autoencoders have recently proven effective in uncovering structured features within large language models. However, systematic studies of similar techniques applied to vision transformers remain limited.
-
-This project explores the following research questions:
-
-* Do sparse autoencoders reveal consistent, structured features in ViT representations?
-* How does feature stability evolve across transformer depth?
-* Does increasing SAE width improve feature consistency?
-* Are deeper representations more susceptible to feature redundancy or collapse?
-* Do independently trained models converge toward similar feature bases?
-
-By combining reconstruction, sparsity, alignment, and geometric analysis, VisionSAE provides a structured framework for probing representation geometry in vision transformers.
-
----
-
-## Methodology
-
-### Backbone Model
-
-Experiments use a Vision Transformer backbone. Hidden activations are extracted from each transformer block and used as input to independent sparse autoencoders.
-
-```
-Image
-  ↓
-Patch Embedding
-  ↓
-Transformer Blocks (0–11)
-  ↓
-Layer Activations
-  ↓
-Sparse Autoencoder
-  ↓
-Feature Analysis
+```bash
+bash run_project.sh
 ```
 
-Each transformer layer is analyzed independently.
+Docker quick run:
 
----
-
-### Sparse Autoencoder Architecture
-
-For each layer activation vector ( x ):
-
-```
-z = Encoder(x)
-x̂ = Decoder(z)
+```bash
+./run_docker.sh cpu
 ```
 
-Training objective:
+GPU quick run:
 
-```
-L = ||x - x̂||² + λ · SparsityPenalty(z)
-```
-
-Key design decisions:
-
-* Overcomplete hidden representation
-* Top-k sparsity activation
-* Independent training per layer
-* Multiple random seeds
-* Width scaling experiments
-
-This setup encourages the discovery of structured feature directions rather than trivial identity mappings.
-
----
-
-## Experimental Setup
-
-**Dataset**
-
-* CIFAR-10 (rapid experimentation and controlled analysis)
-
-**Backbone**
-
-* Vision Transformer (ViT)
-
-**SAE Configuration**
-
-| Parameter       | Values                |
-| --------------- | --------------------- |
-| Layers analyzed | 12 transformer blocks |
-| Hidden width    | 4096, 8192, 16384     |
-| Seeds           | 42, 123, 999          |
-| Sparsity        | Top-k activation      |
-
-All experiments were conducted on NVIDIA RTX A6000 GPUs.
-
----
-
-## Metrics and Analysis
-
-VisionSAE evaluates learned representations using multiple complementary metrics:
-
-### Reconstruction
-
-* Mean Squared Error (MSE)
-
-### Sparsity
-
-* Fraction of inactive latent units
-
-### Mutual Coherence
-
-* Measures redundancy between decoder columns
-
-### Effective Rank
-
-* Estimates intrinsic dimensionality of learned basis
-
-### Feature Stability
-
-* Computed via Hungarian matching across seeds
-* Quantifies alignment between independently trained SAEs
-
-### Cross-Width Alignment
-
-* Measures similarity of learned features across different SAE widths
-
-### Collapse Detection
-
-* Identifies redundancy and overlapping feature directions
-
-Together, these metrics characterize both reconstruction fidelity and geometric structure.
-
----
-
-## Interpretability Experiments
-
-### Top-Activating Images
-
-For each feature, the dataset images producing maximal activation are retrieved. This provides qualitative insight into learned visual patterns.
-
-### Activation Maximization
-
-Synthetic inputs are optimized to maximize individual feature activations, revealing preferred visual structures in feature space.
-
-### Patch-Level Activation Maps
-
-Instead of pooled representations, token-level activations are analyzed to produce spatial heatmaps:
-
-* Identifies which image regions activate a feature
-* Reveals spatial selectivity
-* Enables localized interpretability
-
----
-
-## Key Findings
-
-Preliminary experiments reveal several consistent trends:
-
-* Sparse autoencoders recover structured feature bases from intermediate ViT representations.
-* Feature stability across random seeds improves as SAE width increases.
-* Early transformer layers exhibit higher cross-seed alignment than deeper layers.
-* Wider SAEs show stronger cross-width feature convergence.
-* Deeper layers demonstrate increased feature redundancy, reflected in higher mutual coherence.
-
-These observations suggest that representation geometry evolves systematically across depth and scaling regimes.
-
----
-
-## Repository Structure
-
-```
-visionSAE/
-│
-├── configs/                # experiment configurations
-├── data/                   # dataloaders
-├── models/                 # backbone and SAE implementations
-├── analysis/               # geometry, visualization, statistics
-├── alignment/              # feature matching utilities
-├── experiments/            # experiment automation scripts
-├── scripts/                # training and evaluation
-├── notebooks/              # interpretability analysis
-│
-├── results/                # experiment outputs (JSON)
-├── checkpoints/            # trained SAE weights (excluded from repo)
-├── features/               # extracted backbone features (excluded)
-│
-├── results_summary.csv
-├── stability_summary.csv
-├── cross_width_summary.csv
-│
-├── requirements.txt
-└── README.md
+```bash
+./run_docker.sh gpu
 ```
 
-Large artifacts (datasets, checkpoints, extracted features) are intentionally excluded to ensure reproducibility and repository clarity.
+Full run (all layers, seeds, widths):
 
----
-
-## Environment Setup
-
+```bash
+bash run_project.sh --mode full
+./run_docker.sh cpu full
 ```
+
+## Results At A Glance
+
+<!-- RESULTS_SNAPSHOT_START -->
+Snapshot from current CSV summaries:
+
+| Metric | Value |
+| --- | --- |
+| Total evaluated runs | 108 |
+| Mean MSE | 0.3672 |
+| Mean sparsity | 0.9929 |
+| Mean coherence | 0.2022 |
+| Mean stability score | 0.1328 |
+| Mean cross-width alignment | 0.1385 |
+
+Width trend highlights:
+
+| Width | Mean MSE | Mean Stability |
+| --- | --- | --- |
+| 4096 | 0.3901 | 0.1263 |
+| 8192 | 0.3574 | 0.1329 |
+| 16384 | 0.3541 | 0.1390 |
+
+Interpretation: in these runs, larger SAE width is associated with better (lower) reconstruction error and stronger cross-seed stability.
+<!-- RESULTS_SNAPSHOT_END -->
+
+## What You Get
+
+- Layer-wise feature extraction from ViT blocks.
+- SAE training with top-k sparsity.
+- Cross-seed feature stability via Hungarian matching.
+- Cross-width alignment analysis.
+- Geometry diagnostics including coherence and effective rank.
+- CSV summaries ready for reporting and demos.
+
+## Method
+
+For an activation vector $x$ from a selected ViT layer:
+
+$$
+z = \text{Encoder}(x), \quad \hat{x} = \text{Decoder}(z)
+$$
+
+Optimization target:
+
+$$
+\mathcal{L} = \lVert x - \hat{x} \rVert_2^2 + \lambda \cdot \text{SparsityPenalty}(z)
+$$
+
+Design choices:
+- Overcomplete hidden widths.
+- Top-k sparse latents.
+- Independent SAE per layer.
+- Multi-seed and multi-width sweeps.
+
+## System Flow
+
+```mermaid
+flowchart LR
+  A[Images CIFAR-10] --> B[ViT Backbone]
+  B --> C[Layer Activations]
+  C --> D[Sparse Autoencoder]
+  D --> E[Reconstruction Metrics]
+  D --> F[Stability Across Seeds]
+  D --> G[Cross-Width Alignment]
+  D --> H[Geometry Diagnostics]
+  E --> I[CSV Summaries]
+  F --> I
+  G --> I
+  H --> I
+```
+
+Run orchestration flow:
+
+```mermaid
+flowchart TD
+  S[run_project.sh or run_docker.sh] --> A[Smoke Check]
+  A --> B[Extract Features]
+  B --> C[Train SAE by Layer x Seed x Width]
+  C --> D[Evaluate Metrics]
+  D --> E[Stability and Cross-Width]
+  E --> F[Aggregate CSV Reports]
+```
+
+## Experiment Matrix
+
+| Axis | Default |
+| --- | --- |
+| Dataset | CIFAR-10 |
+| Backbone | ViT Base Patch16 224 |
+| Layers | 0-11 |
+| Widths | 4096, 8192, 16384 |
+| Seeds | 42, 123, 999 |
+
+## Run Modes
+
+### Local setup (manual)
+
+```bash
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-```
-
-If your machine has no CUDA GPU, set `training.device` to `cpu` in `configs/vit_base_cifar.yaml`.
-
-### Smoke Check
-
-```
 python -m scripts.smoke_check
 ```
 
-### One-Command End-to-End Run
+### End-to-end runner
 
-Quick demo (good for presentations):
+Quick mode:
 
-```
-bash run_project.sh
-```
-
-Full experiment run (all layers, widths, and seeds):
-
-```
-bash run_project.sh --mode full
+```bash
+python -m scripts.run_end_to_end --mode quick
 ```
 
-`run_project.sh` bootstraps `.venv`, installs dependencies, then executes the full pipeline orchestrator (`scripts.run_end_to_end`) from extraction through aggregation.
+Full mode:
 
-### Docker (Run Anywhere)
-
-Simplest helper script:
-
+```bash
+python -m scripts.run_end_to_end --mode full
 ```
+
+Custom scope:
+
+```bash
+python -m scripts.run_end_to_end --layers 0,1 --seeds 42,123 --widths 4096,8192
+```
+
+Note: if CUDA is unavailable, the runner automatically uses a temporary CPU config.
+
+## Docker
+
+Helper script:
+
+```bash
 ./run_docker.sh cpu
 ./run_docker.sh gpu
 ./run_docker.sh cpu full
 ```
 
-The first argument selects the runtime (`cpu` or `gpu`). The optional second argument selects mode (`quick` or `full`). Any extra arguments are passed through to `scripts.run_end_to_end`.
+Compose commands:
 
-CPU container (single command):
-
-```
+```bash
 docker compose run --rm visionsae-cpu
-```
-
-GPU container (NVIDIA runtime required):
-
-```
 docker compose --profile gpu run --rm visionsae-gpu
 ```
 
-Build images explicitly:
+Build images directly:
 
-```
+```bash
 docker build -f docker/Dockerfile.cpu -t visionsae:cpu .
 docker build -f docker/Dockerfile.gpu -t visionsae:gpu .
 ```
 
-Run quick demo manually:
+## Detailed Commands
 
-```
-docker run --rm -v "$(pwd):/app" visionsae:cpu
-```
+Extract features:
 
-Run full pipeline manually:
-
-```
-docker run --rm -v "$(pwd):/app" visionsae:cpu --mode full
-```
-
-The Docker entrypoint runs `python -m scripts.run_end_to_end`, so you can pass any runner args directly to the container command.
-
----
-
-## Running the Pipeline
-
-### Extract Layer Features
-
-```
+```bash
 python -m scripts.extract_features --config configs/vit_base_cifar.yaml --layer 0
 ```
 
-### Train Sparse Autoencoder
+Train SAE:
 
-```
+```bash
 python -m scripts.train_layer --config configs/vit_base_cifar.yaml --layer 0
 ```
 
-### Evaluate Representation Metrics
+Evaluate SAE:
 
-```
+```bash
 python -m scripts.evaluate_layer --config configs/vit_base_cifar.yaml --layer 0
 ```
 
-### Stability Sweep
+Run stability sweep:
 
-```
+```bash
 python -m experiments.run_full_stability_sweep
 ```
 
-### Cross-Width Alignment
+Run cross-width sweep:
 
-```
+```bash
 python -m experiments.run_cross_width_sweep
 ```
 
-### Single Cross-Width Run
+Aggregate final summaries:
 
-```
-python -m experiments.run_cross_width \
-  --config configs/vit_base_cifar.yaml \
-  --layer 0 \
-  --seed 42 \
-  --width_small 4096 \
-  --width_large 8192
-```
-
-### Aggregate Results
-
-```
+```bash
 python -m experiments.aggregate_results
 python -m experiments.aggregate_stability
 python -m experiments.aggregate_cross_width
 ```
 
-### Visualization
+## Outputs
 
-```
-notebooks/interpretability_analysis.ipynb
+Generated artifacts:
+- `results/raw` for per-run metric JSON files.
+- `results/stability` for cross-seed alignment outputs.
+- `results/cross_width` for cross-width outputs.
+- `results_summary.csv`.
+- `stability_summary.csv`.
+- `cross_width_summary.csv`.
+
+## Repository Map
+
+```text
+configs/       experiment configuration
+data/          dataloaders
+models/        ViT and SAE modules
+training/      trainer and losses
+analysis/      metrics and interpretability utilities
+alignment/     similarity and matching logic
+experiments/   sweeps and aggregation scripts
+scripts/       extraction, train, eval, smoke, end-to-end
+docker/        Dockerfiles and container entrypoint
 ```
 
----
+## Key Findings
+
+- SAEs recover structured visual feature directions from intermediate ViT states.
+- Wider SAEs typically improve cross-seed stability.
+- Earlier transformer layers often align better than deeper layers.
+- Deeper layers show stronger redundancy signatures in some settings.
 
 ## Reproducibility
 
-The project emphasizes experimental discipline:
+- Deterministic seed controls are built into workflows.
+- Results are stored as JSON and aggregated into CSV.
+- Large artifacts (checkpoints and extracted features) are excluded from source control.
 
-* Deterministic seed control
-* Structured experiment runners
-* JSON-based logging
-* CSV aggregation pipelines
-* Modular analysis utilities
+## Visualization
 
-All experiments can be replicated or extended by modifying configuration files.
+Notebook entrypoint:
 
----
+```text
+notebooks/interpretability_analysis.ipynb
+```
 
-## Future Work
+## Cite This Work
 
-Potential extensions include:
+Citation metadata is available in `CITATION.cff`.
 
-* Scaling experiments to ImageNet
-* Applying the framework to larger ViT variants
-* Comparing SAE features with attention head behavior
-* Tracking feature evolution across backbone training checkpoints
-* Evaluating transferability of discovered features
+BibTeX:
 
----
+```bibtex
+@software{visionsae_2026,
+  title = {VisionSAE: Interpreting Vision Transformers with Sparse Autoencoders},
+  author = {{VisionSAE Contributors}},
+  year = {2026},
+  version = {0.1.0}
+}
+```
 
-## Closing Remarks
+## License
 
-VisionSAE provides a structured framework for analyzing representation geometry in vision transformers using sparse autoencoders. By combining alignment metrics, width scaling, and interpretability tools, the project moves toward a more systematic understanding of feature formation in transformer-based vision models.
-
-The repository is intended as both a research exploration and a foundation for further investigation into mechanistic interpretability in vision systems.
+This repository does not yet include a formal license file. Current usage is best treated as research/demo usage until a license is added.
